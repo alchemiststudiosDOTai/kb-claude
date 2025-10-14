@@ -1,8 +1,22 @@
 
 
+### 5. Large Match Statements with Repetitive Logic
+**Location:** `commands/add.rs` lines 24-104, `commands/update.rs` lines 29-97
+
+**Problem:** Huge match statements with repetitive patterns for each entry type
+
+**Impact:** Medium - hard to maintain and extend
+
+**Fix:** Implement trait-based approach:
+```rust
+trait KbEntry {
+    fn from_args(component: String, args: &Args) -> Result<Self>;
+    fn update_from_args(&mut self, args: &Args) -> Result<()>;
+}
+```
+
+
 ---
-
-
 
 ### 7. Weak Validation Logic
 **Location:** `schema/validator.rs`
