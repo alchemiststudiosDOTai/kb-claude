@@ -48,6 +48,45 @@ claude-kb delete pattern --component ui.auth
 ```
 Append `--json` to most commands for machine-readable output.
 
+## Source Directory Structure
+
+```
+src/
+├── agent/              # Agent-related functionality
+│   ├── mod.rs
+│   └── protocol.rs
+├── commands/           # CLI command implementations
+│   ├── mod.rs
+│   ├── add.rs
+│   ├── delete.rs
+│   ├── diff.rs
+│   ├── list.rs
+│   ├── sync.rs
+│   ├── update.rs
+│   └── validate.rs
+├── io/                 # File I/O operations
+│   ├── mod.rs
+│   └── file_ops.rs
+├── manifest/           # Manifest management
+│   ├── mod.rs
+│   └── sync.rs
+├── models/             # Data models and structures
+│   ├── mod.rs
+│   ├── cheatsheet.rs
+│   ├── code_index.rs
+│   ├── debug.rs
+│   ├── delta.rs
+│   ├── entry_type.rs
+│   ├── metadata.rs
+│   ├── pattern.rs
+│   └── qa.rs
+├── schema/             # Schema validation
+│   ├── mod.rs
+│   └── validator.rs
+├── lib.rs              # Library entry point
+└── main.rs             # CLI application entry point
+```
+
 ## Development
 - Format: `cargo fmt`
 - Lint: `cargo clippy --all-targets -- -D warnings`
