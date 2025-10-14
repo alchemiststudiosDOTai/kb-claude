@@ -8,8 +8,7 @@ pub struct Cheatsheet {
     pub component: String,
     pub title: String,
     pub sections: Vec<CheatsheetSection>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated: Option<DateTime<Utc>>,
+    pub last_updated: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -27,7 +26,7 @@ impl Cheatsheet {
             component,
             title,
             sections: Vec::new(),
-            last_updated: Some(Utc::now()),
+            last_updated: Utc::now(),
         }
     }
 
@@ -37,7 +36,7 @@ impl Cheatsheet {
             content,
             examples: None,
         });
-        self.last_updated = Some(Utc::now());
+        self.last_updated = Utc::now();
     }
 
     #[allow(dead_code)]
@@ -47,6 +46,6 @@ impl Cheatsheet {
                 section.content = c;
             }
         }
-        self.last_updated = Some(Utc::now());
+        self.last_updated = Utc::now();
     }
 }

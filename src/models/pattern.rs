@@ -7,8 +7,7 @@ pub struct Pattern {
     pub schema: String,
     pub component: String,
     pub patterns: Vec<PatternEntry>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated: Option<DateTime<Utc>>,
+    pub last_updated: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -27,7 +26,7 @@ impl Pattern {
             schema: "https://claude-kb.io/schema/pattern/v1".to_string(),
             component,
             patterns: Vec::new(),
-            last_updated: Some(Utc::now()),
+            last_updated: Utc::now(),
         }
     }
 
@@ -38,7 +37,7 @@ impl Pattern {
             example,
             tags: None,
         });
-        self.last_updated = Some(Utc::now());
+        self.last_updated = Utc::now();
     }
 
     pub fn update_pattern(
@@ -55,7 +54,7 @@ impl Pattern {
                 pattern.example = Some(ex);
             }
 
-            self.last_updated = Some(Utc::now());
+            self.last_updated = Utc::now();
             return true;
         }
 

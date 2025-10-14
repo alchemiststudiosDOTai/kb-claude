@@ -7,8 +7,7 @@ pub struct CodeIndex {
     pub schema: String,
     pub component: String,
     pub files: Vec<FileIndex>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated: Option<DateTime<Utc>>,
+    pub last_updated: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -28,7 +27,7 @@ impl CodeIndex {
             schema: "https://claude-kb.io/schema/code_index/v1".to_string(),
             component,
             files: Vec::new(),
-            last_updated: Some(Utc::now()),
+            last_updated: Utc::now(),
         }
     }
 
@@ -39,7 +38,7 @@ impl CodeIndex {
             functions: None,
             classes: None,
         });
-        self.last_updated = Some(Utc::now());
+        self.last_updated = Utc::now();
     }
 
     #[allow(dead_code)]
@@ -49,6 +48,6 @@ impl CodeIndex {
                 file.description = Some(desc);
             }
         }
-        self.last_updated = Some(Utc::now());
+        self.last_updated = Utc::now();
     }
 }

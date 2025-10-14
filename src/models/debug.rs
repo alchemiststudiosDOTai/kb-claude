@@ -7,6 +7,7 @@ pub struct DebugHistory {
     pub schema: String,
     pub component: String,
     pub entries: Vec<DebugEntry>,
+    pub last_updated: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -25,6 +26,7 @@ impl DebugHistory {
             schema: "https://claude-kb.io/schema/debug/v1".to_string(),
             component,
             entries: Vec::new(),
+            last_updated: Utc::now(),
         }
     }
 
@@ -37,5 +39,6 @@ impl DebugHistory {
             commit,
             date: Utc::now(),
         });
+        self.last_updated = Utc::now();
     }
 }

@@ -2,52 +2,7 @@
 
 ---
 
-## Priority 2: Code Quality Issues
 
-### 4. Dead Code in Agent Protocol
-**Location:** `agent/protocol.rs`
-
-**Problem:** Multiple dead code suppressions:
-- Line 4: `#[allow(dead_code)]` on `AgentRequest` struct
-- Line 34: `#[allow(dead_code)]` on `error()` method
-- Line 55: `#[allow(dead_code)]` on `with_data()` method
-
-**Impact:** Low-Medium - unused code clutters codebase
-
-**Fix:** Either implement usage of this code or remove it
-
----
-
-### 5. Large Match Statements with Repetitive Logic
-**Location:** `commands/add.rs` lines 24-104, `commands/update.rs` lines 29-97
-
-**Problem:** Huge match statements with repetitive patterns for each entry type
-
-**Impact:** Medium - hard to maintain and extend
-
-**Fix:** Implement trait-based approach:
-```rust
-trait KbEntry {
-    fn from_args(component: String, args: &Args) -> Result<Self>;
-    fn update_from_args(&mut self, args: &Args) -> Result<()>;
-}
-```
-
----
-
-### 6. Inconsistent Use of Option for last_updated
-**Location:** Model structs
-
-**Problem:**
-- `Metadata` (line 14): `last_updated: DateTime<Utc>` (required)
-- `Pattern` (line 11): `last_updated: Option<DateTime<Utc>>` (optional)
-- `DebugHistory`: no last_updated field at all
-
-**Impact:** Low-Medium - inconsistent data model
-
-**Fix:** Standardize across all entry types (prefer required field with automatic updates)
-
----
 
 ### 7. Weak Validation Logic
 **Location:** `schema/validator.rs`

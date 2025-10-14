@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -6,6 +7,7 @@ pub struct QA {
     pub schema: String,
     pub component: String,
     pub questions: Vec<Question>,
+    pub last_updated: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -24,6 +26,7 @@ impl QA {
             schema: "https://claude-kb.io/schema/qa/v1".to_string(),
             component,
             questions: Vec::new(),
+            last_updated: Utc::now(),
         }
     }
 
@@ -40,5 +43,6 @@ impl QA {
             context,
             source_commit,
         });
+        self.last_updated = Utc::now();
     }
 }
