@@ -128,3 +128,353 @@ pub fn handle(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    fn setup_test_env() -> TempDir {
+        let temp_dir = TempDir::new().unwrap();
+        std::env::set_current_dir(temp_dir.path()).unwrap();
+        temp_dir
+    }
+
+    #[test]
+    fn test_add_metadata_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Metadata,
+            "test.component".to_string(),
+            Some("Test summary".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Metadata, "test.component");
+        assert!(path.exists());
+
+        let metadata: Metadata = read_json(&path).unwrap();
+        assert_eq!(metadata.component, "test.component");
+        assert_eq!(metadata.summary, "Test summary");
+    }
+
+    #[test]
+    fn test_add_metadata_missing_summary() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Metadata,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("--summary is required"));
+    }
+
+    #[test]
+    fn test_add_debug_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Debug,
+            "test.component".to_string(),
+            None,
+            Some("Test error".to_string()),
+            Some("Test solution".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Debug, "test.component");
+        assert!(path.exists());
+
+        let debug: DebugHistory = read_json(&path).unwrap();
+        assert_eq!(debug.component, "test.component");
+        assert_eq!(debug.entries.len(), 1);
+        assert_eq!(debug.entries[0].error, "Test error");
+        assert_eq!(debug.entries[0].solution, "Test solution");
+    }
+
+    #[test]
+    fn test_add_debug_multiple_entries() {
+        let _temp = setup_test_env();
+
+        handle(
+            EntryType::Debug,
+            "test.component".to_string(),
+            None,
+            Some("Error 1".to_string()),
+            Some("Solution 1".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        handle(
+            EntryType::Debug,
+            "test.component".to_string(),
+            None,
+            Some("Error 2".to_string()),
+            Some("Solution 2".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        let path = get_entry_path(&EntryType::Debug, "test.component");
+        let debug: DebugHistory = read_json(&path).unwrap();
+        assert_eq!(debug.entries.len(), 2);
+    }
+
+    #[test]
+    fn test_add_qa_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::QA,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            Some("What is this?".to_string()),
+            Some("This is a test".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::QA, "test.component");
+        let qa: QA = read_json(&path).unwrap();
+        assert_eq!(qa.questions.len(), 1);
+        assert_eq!(qa.questions[0].q, "What is this?");
+        assert_eq!(qa.questions[0].a, "This is a test");
+    }
+
+    #[test]
+    fn test_add_pattern_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Pattern,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("TestPattern".to_string()),
+            Some("Pattern description".to_string()),
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Pattern, "test.component");
+        let pattern: Pattern = read_json(&path).unwrap();
+        assert_eq!(pattern.patterns.len(), 1);
+        assert_eq!(pattern.patterns[0].name, "TestPattern");
+        assert_eq!(pattern.patterns[0].description, "Pattern description");
+    }
+
+    #[test]
+    fn test_add_code_index_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::CodeIndex,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("src/main.rs".to_string()),
+            Some("Main entry point".to_string()),
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::CodeIndex, "test.component");
+        let code_index: CodeIndex = read_json(&path).unwrap();
+        assert_eq!(code_index.files.len(), 1);
+        assert_eq!(code_index.files[0].path, "src/main.rs");
+    }
+
+    #[test]
+    fn test_add_cheatsheet_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Cheatsheet,
+            "test.component".to_string(),
+            Some("Test Cheatsheet".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("Introduction".to_string()),
+            Some("This is the intro".to_string()),
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Cheatsheet, "test.component");
+        let cheatsheet: Cheatsheet = read_json(&path).unwrap();
+        assert_eq!(cheatsheet.title, "Test Cheatsheet");
+        assert_eq!(cheatsheet.sections.len(), 1);
+        assert_eq!(cheatsheet.sections[0].heading, "Introduction");
+    }
+
+    #[test]
+    fn test_add_delta_entry_returns_error() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Delta,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Delta entries are not supported"));
+    }
+
+    #[test]
+    fn test_add_creates_claude_dirs() {
+        let temp = setup_test_env();
+        let base_path = temp.path().join(".claude");
+
+        assert!(!base_path.exists());
+
+        handle(
+            EntryType::Metadata,
+            "test.component".to_string(),
+            Some("Test".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        assert!(base_path.exists());
+        assert!(base_path.join("metadata").exists());
+    }
+
+    #[test]
+    fn test_add_with_json_output() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Metadata,
+            "test.component".to_string(),
+            Some("Test summary".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            true,
+        );
+
+        assert!(result.is_ok());
+    }
+}
