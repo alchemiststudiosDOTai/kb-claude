@@ -132,7 +132,7 @@ pub fn handle(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use serial_test::serial;
     use tempfile::TempDir;
 
     fn setup_test_env() -> TempDir {
@@ -142,6 +142,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_metadata_entry() {
         let _temp = setup_test_env();
 
@@ -173,6 +174,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_metadata_missing_summary() {
         let _temp = setup_test_env();
 
@@ -201,6 +203,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_debug_entry() {
         let _temp = setup_test_env();
 
@@ -234,6 +237,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_debug_multiple_entries() {
         let _temp = setup_test_env();
 
@@ -279,6 +283,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_qa_entry() {
         let _temp = setup_test_env();
 
@@ -309,6 +314,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_pattern_entry() {
         let _temp = setup_test_env();
 
@@ -339,6 +345,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_code_index_entry() {
         let _temp = setup_test_env();
 
@@ -368,6 +375,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_cheatsheet_entry() {
         let _temp = setup_test_env();
 
@@ -398,6 +406,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_delta_entry_returns_error() {
         let _temp = setup_test_env();
 
@@ -426,6 +435,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_creates_claude_dirs() {
         let temp = setup_test_env();
         let base_path = temp.path().join(".claude");
@@ -455,6 +465,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_add_with_json_output() {
         let _temp = setup_test_env();
 

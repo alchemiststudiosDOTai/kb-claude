@@ -15,6 +15,14 @@ walkdir = "2.5"
 colored = "2.1"
 glob = "0.3"
 
+[dev-dependencies]
+tempfile = "3.13"
+serial_test = "3.2"
+
+[lib]
+name = "claude_kb_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "claude-kb"
 path = "src/main.rs"

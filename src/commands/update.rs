@@ -23,6 +23,13 @@ pub fn handle(
     note: Option<String>,
     json: bool,
 ) -> Result<()> {
+    // Check for unsupported entry types early
+    if entry_type == EntryType::Delta {
+        return Err(anyhow!(
+            "Delta entries are not supported via the update command"
+        ));
+    }
+
     let path = if let Some(file_path) = file {
         std::path::PathBuf::from(file_path)
     } else if let Some(comp) = component {
@@ -96,9 +103,7 @@ pub fn handle(
             write_json(&path, &cheatsheet, true)?;
         }
         EntryType::Delta => {
-            return Err(anyhow!(
-                "Delta entries are not supported via the update command"
-            ));
+            unreachable!("Delta check should have been handled earlier")
         }
     }
 
@@ -121,4 +126,452 @@ pub fn handle(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::add;
+    use serial_test::serial;
+    use tempfile::TempDir;
+
+    fn setup_test_env() -> TempDir {
+        let temp_dir = TempDir::new().unwrap();
+        std::env::set_current_dir(temp_dir.path()).unwrap();
+        temp_dir
+    }
+
+    fn create_test_metadata(component: &str) {
+        add::handle(
+            EntryType::Metadata,
+            component.to_string(),
+            Some("Initial summary".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+    }
+
+    fn create_test_pattern(component: &str) {
+        add::handle(
+            EntryType::Pattern,
+            component.to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("TestPattern".to_string()),
+            Some("Initial description".to_string()),
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_metadata_entry() {
+        let _temp = setup_test_env();
+        create_test_metadata("test.component");
+
+        let result = handle(
+            EntryType::Metadata,
+            None,
+            Some("test.component".to_string()),
+            None,
+            Some("Updated summary".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Metadata, "test.component");
+        let metadata: Metadata = read_json(&path).unwrap();
+        assert_eq!(metadata.summary, "Updated summary");
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_nonexistent_entry() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Metadata,
+            None,
+            Some("nonexistent.component".to_string()),
+            None,
+            Some("Updated summary".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("File does not exist"));
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_debug_adds_entry() {
+        let _temp = setup_test_env();
+
+        add::handle(
+            EntryType::Debug,
+            "test.component".to_string(),
+            None,
+            Some("Initial error".to_string()),
+            Some("Initial solution".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        let result = handle(
+            EntryType::Debug,
+            None,
+            Some("test.component".to_string()),
+            Some("New error".to_string()),
+            Some("New solution".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Debug, "test.component");
+        let debug: DebugHistory = read_json(&path).unwrap();
+        assert_eq!(debug.entries.len(), 2);
+        assert_eq!(debug.entries[1].error, "New error");
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_pattern_existing() {
+        let _temp = setup_test_env();
+        create_test_pattern("test.component");
+
+        let result = handle(
+            EntryType::Pattern,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            None,
+            None,
+            Some("TestPattern".to_string()),
+            Some("Updated description".to_string()),
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Pattern, "test.component");
+        let pattern: Pattern = read_json(&path).unwrap();
+        assert_eq!(pattern.patterns[0].description, "Updated description");
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_pattern_nonexistent_pattern() {
+        let _temp = setup_test_env();
+        create_test_pattern("test.component");
+
+        let result = handle(
+            EntryType::Pattern,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            None,
+            None,
+            Some("NonexistentPattern".to_string()),
+            Some("Description".to_string()),
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("not found"));
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_qa_adds_question() {
+        let _temp = setup_test_env();
+
+        add::handle(
+            EntryType::QA,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            Some("Question 1".to_string()),
+            Some("Answer 1".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        let result = handle(
+            EntryType::QA,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            Some("Question 2".to_string()),
+            Some("Answer 2".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::QA, "test.component");
+        let qa: QA = read_json(&path).unwrap();
+        assert_eq!(qa.questions.len(), 2);
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_code_index_adds_file() {
+        let _temp = setup_test_env();
+
+        add::handle(
+            EntryType::CodeIndex,
+            "test.component".to_string(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("src/main.rs".to_string()),
+            None,
+            false,
+        )
+        .unwrap();
+
+        let result = handle(
+            EntryType::CodeIndex,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("src/lib.rs".to_string()),
+            Some("Library code".to_string()),
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::CodeIndex, "test.component");
+        let code_index: CodeIndex = read_json(&path).unwrap();
+        assert_eq!(code_index.files.len(), 2);
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_cheatsheet_adds_section() {
+        let _temp = setup_test_env();
+
+        add::handle(
+            EntryType::Cheatsheet,
+            "test.component".to_string(),
+            Some("Test Cheatsheet".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("Section 1".to_string()),
+            Some("Content 1".to_string()),
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+
+        let result = handle(
+            EntryType::Cheatsheet,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some("Section 2".to_string()),
+            Some("Content 2".to_string()),
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let path = get_entry_path(&EntryType::Cheatsheet, "test.component");
+        let cheatsheet: Cheatsheet = read_json(&path).unwrap();
+        assert_eq!(cheatsheet.sections.len(), 2);
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_with_file_path() {
+        let _temp = setup_test_env();
+        create_test_metadata("test.component");
+
+        let path = get_entry_path(&EntryType::Metadata, "test.component");
+
+        let result = handle(
+            EntryType::Metadata,
+            Some(path.to_string_lossy().to_string()),
+            None,
+            None,
+            Some("Updated via file path".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_ok());
+
+        let metadata: Metadata = read_json(&path).unwrap();
+        assert_eq!(metadata.summary, "Updated via file path");
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_missing_component_and_file() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Metadata,
+            None,
+            None,
+            None,
+            Some("Updated".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Either --file or --component must be specified"));
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_delta_returns_error() {
+        let _temp = setup_test_env();
+
+        let result = handle(
+            EntryType::Delta,
+            None,
+            Some("test.component".to_string()),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+        );
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Delta entries are not supported"));
+    }
 }

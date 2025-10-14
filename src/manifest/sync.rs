@@ -30,6 +30,12 @@ pub struct SyncReport {
     pub timestamp: DateTime<Utc>,
 }
 
+impl Default for Manifest {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Manifest {
     pub fn new() -> Self {
         Self {
