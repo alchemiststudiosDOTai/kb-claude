@@ -15,6 +15,12 @@ pub fn handle(
     solution: Option<String>,
     question: Option<String>,
     answer: Option<String>,
+    name: Option<String>,
+    description: Option<String>,
+    heading: Option<String>,
+    content: Option<String>,
+    file_path: Option<String>,
+    note: Option<String>,
     json: bool,
 ) -> Result<()> {
     ensure_claude_dirs()?;
@@ -54,8 +60,8 @@ pub fn handle(
             write_json(&path, &qa, true)?;
         }
         EntryType::CodeIndex => {
-            let summary = summary
-                .ok_or_else(|| anyhow!("--summary (file path) is required for code_index"))?;
+            let file_path =
+                file_path.ok_or_else(|| anyhow!("--file-path is required for code_index"))?;
 
             let mut code_index = if path.exists() {
                 read_json(&path)?
@@ -63,14 +69,13 @@ pub fn handle(
                 CodeIndex::new(component.clone())
             };
 
-            code_index.add_file(summary, error);
+            code_index.add_file(file_path, note);
             write_json(&path, &code_index, true)?;
         }
         EntryType::Pattern => {
-            let summary = summary
-                .ok_or_else(|| anyhow!("--summary (pattern name) is required for pattern"))?;
-            let error =
-                error.ok_or_else(|| anyhow!("--error (description) is required for pattern"))?;
+            let name = name.ok_or_else(|| anyhow!("--name is required for pattern"))?;
+            let description =
+                description.ok_or_else(|| anyhow!("--description is required for pattern"))?;
 
             let mut pattern = if path.exists() {
                 read_json(&path)?
@@ -78,7 +83,7 @@ pub fn handle(
                 Pattern::new(component.clone())
             };
 
-            pattern.add_pattern(summary, error, solution);
+            pattern.add_pattern(name, description, None);
             write_json(&path, &pattern, true)?;
         }
         EntryType::Cheatsheet => {
@@ -91,8 +96,8 @@ pub fn handle(
                 Cheatsheet::new(component.clone(), summary.clone())
             };
 
-            if let (Some(heading), Some(content)) = (error, solution) {
-                cheatsheet.add_section(heading, content);
+            if let (Some(h), Some(c)) = (heading, content) {
+                cheatsheet.add_section(h, c);
             }
             write_json(&path, &cheatsheet, true)?;
         }

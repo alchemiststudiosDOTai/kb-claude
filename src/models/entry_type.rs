@@ -86,10 +86,16 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("metadata".parse::<EntryType>().unwrap(), EntryType::Metadata);
+        assert_eq!(
+            "metadata".parse::<EntryType>().unwrap(),
+            EntryType::Metadata
+        );
         assert_eq!("debug".parse::<EntryType>().unwrap(), EntryType::Debug);
         assert_eq!("qa".parse::<EntryType>().unwrap(), EntryType::QA);
-        assert_eq!("code_index".parse::<EntryType>().unwrap(), EntryType::CodeIndex);
+        assert_eq!(
+            "code_index".parse::<EntryType>().unwrap(),
+            EntryType::CodeIndex
+        );
         assert!("invalid".parse::<EntryType>().is_err());
     }
 
@@ -109,4 +115,3 @@ mod tests {
         assert_eq!(EntryType::Pattern.to_subdir(), "patterns");
     }
 }
-

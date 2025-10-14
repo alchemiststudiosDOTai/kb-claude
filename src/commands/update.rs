@@ -6,12 +6,21 @@ use crate::io::{get_entry_path, read_json, write_json};
 use crate::manifest::compute_file_hash;
 use crate::models::{Cheatsheet, CodeIndex, DebugHistory, EntryType, Metadata, Pattern, QA};
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle(
     entry_type: EntryType,
     file: Option<String>,
     component: Option<String>,
     error: Option<String>,
     solution: Option<String>,
+    question: Option<String>,
+    answer: Option<String>,
+    name: Option<String>,
+    description: Option<String>,
+    heading: Option<String>,
+    content: Option<String>,
+    file_path: Option<String>,
+    note: Option<String>,
     json: bool,
 ) -> Result<()> {
     let path = if let Some(file_path) = file {
@@ -45,48 +54,45 @@ pub fn handle(
             write_json(&path, &debug, true)?;
         }
         EntryType::QA => {
-            let error =
-                error.ok_or_else(|| anyhow!("--error (question) is required for qa update"))?;
-            let solution =
-                solution.ok_or_else(|| anyhow!("--solution (answer) is required for qa update"))?;
+            let question =
+                question.ok_or_else(|| anyhow!("--question is required for qa update"))?;
+            let answer = answer.ok_or_else(|| anyhow!("--answer is required for qa update"))?;
 
             let mut qa: QA = read_json(&path)?;
-            qa.add_question(error, solution, None, None);
+            qa.add_question(question, answer, None, None);
             write_json(&path, &qa, true)?;
         }
         EntryType::CodeIndex => {
-            let error = error
-                .ok_or_else(|| anyhow!("--error (file path) is required for code_index update"))?;
+            let file_path = file_path
+                .ok_or_else(|| anyhow!("--file-path is required for code_index update"))?;
 
             let mut code_index: CodeIndex = read_json(&path)?;
-            code_index.add_file(error, solution);
+            code_index.add_file(file_path, note);
             write_json(&path, &code_index, true)?;
         }
         EntryType::Pattern => {
-            let error = error
-                .ok_or_else(|| anyhow!("--error (pattern name) is required for pattern update"))?;
-            let solution = solution.ok_or_else(|| {
-                anyhow!("--solution (description) is required for pattern update")
-            })?;
+            let name = name.ok_or_else(|| anyhow!("--name is required for pattern update"))?;
+            let description = description
+                .ok_or_else(|| anyhow!("--description is required for pattern update"))?;
 
             let mut pattern: Pattern = read_json(&path)?;
-            if !pattern.update_pattern(&error, Some(solution), None) {
+            if !pattern.update_pattern(&name, Some(description), None) {
                 return Err(anyhow!(
                     "Pattern '{}' not found in {}. Use `claude-kb add pattern` to create it first.",
-                    error,
+                    name,
                     path.display()
                 ));
             }
             write_json(&path, &pattern, true)?;
         }
         EntryType::Cheatsheet => {
-            let error = error
-                .ok_or_else(|| anyhow!("--error (heading) is required for cheatsheet update"))?;
-            let solution = solution
-                .ok_or_else(|| anyhow!("--solution (content) is required for cheatsheet update"))?;
+            let heading =
+                heading.ok_or_else(|| anyhow!("--heading is required for cheatsheet update"))?;
+            let content =
+                content.ok_or_else(|| anyhow!("--content is required for cheatsheet update"))?;
 
             let mut cheatsheet: Cheatsheet = read_json(&path)?;
-            cheatsheet.add_section(error, solution);
+            cheatsheet.add_section(heading, content);
             write_json(&path, &cheatsheet, true)?;
         }
         EntryType::Delta => {

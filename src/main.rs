@@ -37,6 +37,18 @@ enum Commands {
         #[arg(long)]
         answer: Option<String>,
         #[arg(long)]
+        name: Option<String>,
+        #[arg(long)]
+        description: Option<String>,
+        #[arg(long)]
+        heading: Option<String>,
+        #[arg(long)]
+        content: Option<String>,
+        #[arg(long)]
+        file_path: Option<String>,
+        #[arg(long)]
+        note: Option<String>,
+        #[arg(long)]
         json: bool,
     },
     #[command(about = "Modify existing entries by ID or file")]
@@ -51,6 +63,22 @@ enum Commands {
         error: Option<String>,
         #[arg(long)]
         solution: Option<String>,
+        #[arg(long)]
+        question: Option<String>,
+        #[arg(long)]
+        answer: Option<String>,
+        #[arg(long)]
+        name: Option<String>,
+        #[arg(long)]
+        description: Option<String>,
+        #[arg(long)]
+        heading: Option<String>,
+        #[arg(long)]
+        content: Option<String>,
+        #[arg(long)]
+        file_path: Option<String>,
+        #[arg(long)]
+        note: Option<String>,
         #[arg(long)]
         json: bool,
     },
@@ -109,9 +137,28 @@ fn main() -> Result<()> {
             solution,
             question,
             answer,
+            name,
+            description,
+            heading,
+            content,
+            file_path,
+            note,
             json,
         } => commands::add::handle(
-            entry_type, component, summary, error, solution, question, answer, json,
+            entry_type,
+            component,
+            summary,
+            error,
+            solution,
+            question,
+            answer,
+            name,
+            description,
+            heading,
+            content,
+            file_path,
+            note,
+            json,
         ),
         Commands::Update {
             entry_type,
@@ -119,8 +166,31 @@ fn main() -> Result<()> {
             component,
             error,
             solution,
+            question,
+            answer,
+            name,
+            description,
+            heading,
+            content,
+            file_path,
+            note,
             json,
-        } => commands::update::handle(entry_type, file, component, error, solution, json),
+        } => commands::update::handle(
+            entry_type,
+            file,
+            component,
+            error,
+            solution,
+            question,
+            answer,
+            name,
+            description,
+            heading,
+            content,
+            file_path,
+            note,
+            json,
+        ),
         Commands::Delete {
             entry_type,
             component,
