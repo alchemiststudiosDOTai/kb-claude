@@ -8,6 +8,8 @@ mod manifest;
 mod models;
 mod schema;
 
+use models::EntryType;
+
 #[derive(Parser)]
 #[command(name = "claude-kb")]
 #[command(about = "Structured, typed management of .claude knowledge base", long_about = None)]
@@ -21,7 +23,7 @@ enum Commands {
     #[command(about = "Create new typed KB entries")]
     Add {
         #[arg(value_name = "TYPE")]
-        entry_type: String,
+        entry_type: EntryType,
         #[arg(long)]
         component: String,
         #[arg(long)]
@@ -40,7 +42,7 @@ enum Commands {
     #[command(about = "Modify existing entries by ID or file")]
     Update {
         #[arg(value_name = "TYPE")]
-        entry_type: String,
+        entry_type: EntryType,
         #[arg(long)]
         file: Option<String>,
         #[arg(long)]
@@ -55,7 +57,7 @@ enum Commands {
     #[command(about = "Delete entries by component or file")]
     Delete {
         #[arg(value_name = "TYPE")]
-        entry_type: String,
+        entry_type: EntryType,
         #[arg(long)]
         component: Option<String>,
         #[arg(long)]
@@ -80,7 +82,7 @@ enum Commands {
     #[command(about = "Enumerate entries by type or component")]
     List {
         #[arg(long)]
-        r#type: Option<String>,
+        r#type: Option<EntryType>,
         #[arg(long)]
         component: Option<String>,
         #[arg(long)]

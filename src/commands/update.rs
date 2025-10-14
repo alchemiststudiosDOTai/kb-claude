@@ -4,10 +4,10 @@ use colored::Colorize;
 use crate::agent::AgentResponse;
 use crate::io::{get_entry_path, read_json, write_json};
 use crate::manifest::compute_file_hash;
-use crate::models::{Cheatsheet, CodeIndex, DebugHistory, Metadata, Pattern, QA};
+use crate::models::{Cheatsheet, CodeIndex, DebugHistory, EntryType, Metadata, Pattern, QA};
 
 pub fn handle(
-    entry_type: String,
+    entry_type: EntryType,
     file: Option<String>,
     component: Option<String>,
     error: Option<String>,
@@ -26,8 +26,8 @@ pub fn handle(
         return Err(anyhow!("File does not exist: {}", path.display()));
     }
 
-    match entry_type.as_str() {
-        "metadata" => {
+    match entry_type {
+        EntryType::Metadata => {
             let mut metadata: Metadata = read_json(&path)?;
             if let Some(s) = solution {
                 metadata.summary = s;
@@ -35,7 +35,7 @@ pub fn handle(
             metadata.last_updated = chrono::Utc::now();
             write_json(&path, &metadata, true)?;
         }
-        "debug" => {
+        EntryType::Debug => {
             let error = error.ok_or_else(|| anyhow!("--error is required for debug update"))?;
             let solution =
                 solution.ok_or_else(|| anyhow!("--solution is required for debug update"))?;
@@ -44,7 +44,7 @@ pub fn handle(
             debug.add_entry(error, solution, None);
             write_json(&path, &debug, true)?;
         }
-        "qa" => {
+        EntryType::QA => {
             let error =
                 error.ok_or_else(|| anyhow!("--error (question) is required for qa update"))?;
             let solution =
@@ -54,7 +54,7 @@ pub fn handle(
             qa.add_question(error, solution, None, None);
             write_json(&path, &qa, true)?;
         }
-        "code_index" => {
+        EntryType::CodeIndex => {
             let error = error
                 .ok_or_else(|| anyhow!("--error (file path) is required for code_index update"))?;
 
@@ -62,7 +62,7 @@ pub fn handle(
             code_index.add_file(error, solution);
             write_json(&path, &code_index, true)?;
         }
-        "pattern" => {
+        EntryType::Pattern => {
             let error = error
                 .ok_or_else(|| anyhow!("--error (pattern name) is required for pattern update"))?;
             let solution = solution.ok_or_else(|| {
@@ -79,7 +79,7 @@ pub fn handle(
             }
             write_json(&path, &pattern, true)?;
         }
-        "cheatsheet" => {
+        EntryType::Cheatsheet => {
             let error = error
                 .ok_or_else(|| anyhow!("--error (heading) is required for cheatsheet update"))?;
             let solution = solution
@@ -89,10 +89,9 @@ pub fn handle(
             cheatsheet.add_section(error, solution);
             write_json(&path, &cheatsheet, true)?;
         }
-        _ => {
+        EntryType::Delta => {
             return Err(anyhow!(
-                "Unsupported entry type: {}. Use: metadata, debug, qa, code_index, pattern, cheatsheet",
-                entry_type
+                "Delta entries are not supported via the update command"
             ));
         }
     }

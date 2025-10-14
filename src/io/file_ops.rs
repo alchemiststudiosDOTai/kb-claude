@@ -4,6 +4,8 @@ use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::models::EntryType;
+
 pub const CLAUDE_DIR: &str = ".claude";
 
 pub fn get_claude_path() -> PathBuf {
@@ -59,37 +61,19 @@ pub fn write_json<T: Serialize>(path: &Path, data: &T, pretty: bool) -> Result<(
     Ok(())
 }
 
-pub fn get_entry_path(entry_type: &str, component: &str) -> PathBuf {
+pub fn get_entry_path(entry_type: &EntryType, component: &str) -> PathBuf {
     let base = get_claude_path();
-    let subdir = match entry_type {
-        "metadata" => "metadata",
-        "debug" => "debug_history",
-        "qa" => "qa",
-        "delta" => "delta",
-        "code_index" => "code_index",
-        "pattern" => "patterns",
-        "cheatsheet" => "cheatsheets",
-        _ => "metadata",
-    };
-
+    let subdir = entry_type.to_subdir();
     let filename = format!("{}.json", component);
     base.join(subdir).join(filename)
 }
 
-pub fn list_entries(entry_type: Option<&str>) -> Result<Vec<PathBuf>> {
+pub fn list_entries(entry_type: Option<&EntryType>) -> Result<Vec<PathBuf>> {
     let base = get_claude_path();
     let mut entries = Vec::new();
 
-    let dirs_to_scan = if let Some(t) = entry_type {
-        vec![match t {
-            "metadata" => "metadata",
-            "debug" => "debug_history",
-            "qa" => "qa",
-            "delta" => "delta",
-            "code_index" => "code_index",
-            "pattern" => "patterns",
-            _ => return Ok(entries),
-        }]
+    let dirs_to_scan: Vec<&str> = if let Some(t) = entry_type {
+        vec![t.to_subdir()]
     } else {
         vec![
             "metadata",
@@ -98,6 +82,7 @@ pub fn list_entries(entry_type: Option<&str>) -> Result<Vec<PathBuf>> {
             "delta",
             "code_index",
             "patterns",
+            "cheatsheets",
         ]
     };
 

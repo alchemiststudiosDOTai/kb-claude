@@ -4,9 +4,10 @@ use std::fs;
 
 use crate::agent::AgentResponse;
 use crate::io::get_entry_path;
+use crate::models::EntryType;
 
 pub fn handle(
-    entry_type: String,
+    entry_type: EntryType,
     component: Option<String>,
     file: Option<String>,
     json: bool,

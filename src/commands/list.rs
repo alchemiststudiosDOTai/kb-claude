@@ -3,13 +3,14 @@ use colored::Colorize;
 use serde_json::Value;
 
 use crate::io::{list_entries, read_json};
+use crate::models::EntryType;
 
 pub fn handle(
-    entry_type: Option<String>,
+    entry_type: Option<EntryType>,
     component: Option<String>,
     json_output: bool,
 ) -> Result<()> {
-    let paths = list_entries(entry_type.as_deref())?;
+    let paths = list_entries(entry_type.as_ref())?;
 
     let mut entries = Vec::new();
 
