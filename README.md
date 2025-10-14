@@ -1,5 +1,7 @@
 # Claude KB CLI
 
+![Claude KB CLI](https://maas-log-prod.cn-wlcb.ufileos.com/anthropic/230cb711-68a5-4e5d-b65f-24d823b2aebf/86b1819b06ceced1b670652b9e47cd09.png?UCloudPublicKey=TOKEN_e15ba47a-d098-4fbd-9afc-a0dcf0e4e621&Expires=1760470389&Signature=MOHIr0noh+lOYBVcXQtbwl3Vdso=)
+
 Lightweight command-line helper for managing structured `.claude` knowledge base entries (metadata, debug logs, QA, code index, patterns, cheatsheets) in a consistent JSON format.
 
 ## Prerequisites
@@ -8,9 +10,9 @@ Lightweight command-line helper for managing structured `.claude` knowledge base
 
 ## Install
 ```bash
-cargo install --path .
+cargo install claude-kb-cli
 ```
-You can also run directly with `cargo run -- <command>`.
+You can also run directly with `cargo run -- <command>` or install from source with `cargo install --path .`.
 
 ## `.claude` layout
 The tool keeps everything under `.claude/` and will create the folders on demand:
