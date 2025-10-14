@@ -2,6 +2,8 @@
 name = "claude-kb-cli"
 version = "0.1.1"
 edition = "2021"
+description = "A CLI tool for managing knowledge bases with Claude"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive", "cargo"] }
