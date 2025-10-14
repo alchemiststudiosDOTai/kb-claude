@@ -14,21 +14,13 @@ pub fn get_claude_path() -> PathBuf {
 
 pub fn ensure_claude_dirs() -> Result<()> {
     let base = get_claude_path();
-    let dirs = vec![
-        "metadata",
-        "code_index",
-        "debug_history",
-        "patterns",
-        "qa",
-        "cheatsheets",
-        "delta",
-    ];
 
     if !base.exists() {
         fs::create_dir(&base).context("Failed to create .claude directory")?;
     }
 
-    for dir in dirs {
+    for entry_type in EntryType::all() {
+        let dir = entry_type.to_subdir();
         let path = base.join(dir);
         if !path.exists() {
             fs::create_dir_all(&path).context(format!("Failed to create {}", dir))?;
@@ -75,15 +67,7 @@ pub fn list_entries(entry_type: Option<&EntryType>) -> Result<Vec<PathBuf>> {
     let dirs_to_scan: Vec<&str> = if let Some(t) = entry_type {
         vec![t.to_subdir()]
     } else {
-        vec![
-            "metadata",
-            "debug_history",
-            "qa",
-            "delta",
-            "code_index",
-            "patterns",
-            "cheatsheets",
-        ]
+        EntryType::all().iter().map(|t| t.to_subdir()).collect()
     };
 
     for dir in dirs_to_scan {

@@ -19,7 +19,7 @@ pub enum EntryType {
 
 impl EntryType {
     /// Returns the subdirectory name for this entry type
-    pub fn to_subdir(&self) -> &'static str {
+    pub fn to_subdir(self) -> &'static str {
         match self {
             EntryType::Metadata => "metadata",
             EntryType::Debug => "debug_history",

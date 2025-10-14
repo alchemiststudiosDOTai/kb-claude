@@ -1,40 +1,5 @@
 # Code Smells to Fix
 
-This document lists code smells in the kb-claude codebase in order of priority.
-
-## Priority 1: Critical Design Issues
-
-### 1. Entry Types Should Be an Enum (Not Strings)
-**Location:** Throughout codebase (`main.rs`, `commands/add.rs`, `commands/update.rs`, `commands/delete.rs`, `io/file_ops.rs`)
-
-**Problem:** Entry types are handled as `String` values, leading to:
-- No compile-time validation
-- Risk of typos/invalid types at runtime
-- Repeated string literals everywhere
-- Error-prone pattern matching
-
-**Impact:** High - affects type safety and maintainability
-
-**Fix:** Create an `EntryType` enum:
-```rust
-pub enum EntryType {
-    Metadata,
-    Debug,
-    QA,
-    CodeIndex,
-    Pattern,
-    Cheatsheet,
-}
-```
-
-**Files affected:**
-- `src/main.rs` (lines 24, 42, 57)
-- `src/commands/add.rs` (lines 11, 24-104)
-- `src/commands/update.rs` (lines 10, 29-97)
-- `src/commands/delete.rs` (lines 9)
-- `src/io/file_ops.rs` (lines 62-77, 84-91)
-
----
 
 ### 2. Duplicated Entry Type to Directory Mapping Logic
 **Location:** `io/file_ops.rs` lines 62-77 and 84-91
