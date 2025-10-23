@@ -1,0 +1,14 @@
+[package]
+name = "kb-claude"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.5", features = ["derive"] }
+glob = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+uuid = { version = "1.6", features = ["v4"] }
+walkdir = "2.4"
