@@ -7,3 +7,4 @@
 | Dogfooding Knowledge Base | metadata | ./.claude/metadata/dogfooding-knowledge-base.md | kb, overview | dogfooding-cli-workflow | 2025-10-23 |
 | First Run Initialization | debug_history | ./.claude/debug_history/first-run-initialization.md | setup, init | dogfooding-knowledge-base | 2025-10-23 |
 | How to Search the KB | qa | ./.claude/qa/how-to-search-the-kb.md | search, usage | dogfooding-knowledge-base | 2025-10-23 |
+| Release 0.1.1 Prep | metadata | ./.claude/metadata/release-0-1-1-prep.md | release, 0.1.1 | dogfooding-knowledge-base | 2025-10-23 |
