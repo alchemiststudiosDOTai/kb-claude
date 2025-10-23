@@ -1,13 +1,13 @@
 # kb-claude
 
-`kb-claude` is a Rust CLI that manages Markdown-based knowledge bases organized under a `.claude/` hierarchy. Each command aligns with the MVP scope captured in `PRD.md` and the Implementation Plan in `PLAN.md`.
+`kb-claude` is a Rust CLI that manages Markdown-based knowledge bases organized under a `.claude/` hierarchy. Each command aligns with the MVP scope captured in `PRD.md` and the Implementation Plan in `PLAN.md`. The crate published to crates.io is named `claude-kb-cli` and installs the `kb-claude` binary.
 
 ## Getting Started
 
 ```bash
-cargo build
-cargo run -- init
-cargo run -- new "auth module broken after drizzle kit upgrade" -t debug_history
+cargo install claude-kb-cli # or cargo build --release within this repo
+kb-claude init
+kb-claude new "auth module broken after drizzle kit upgrade" -t debug_history
 ```
 
 Generated entries land inside `.claude/<type>/<slug>.md` with YAML front matter, UUIDs, and timestamps already populated. Interactive prompts collect tags, relations, and body copy when flags are omitted.

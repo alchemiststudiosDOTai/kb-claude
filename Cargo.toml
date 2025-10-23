@@ -1,5 +1,5 @@
 [package]
-name = "kb-claude"
+name = "claude-kb-cli"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,3 +17,7 @@ walkdir = "2.4"
 assert_cmd = "2.0"
 assert_fs = "1.1"
 predicates = "3.1"
+
+[[bin]]
+name = "kb-claude"
+path = "src/main.rs"

@@ -1,5 +1,5 @@
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    kb_claude::cli::run()
+    claude_kb_cli::cli::run()
 }
