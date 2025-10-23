@@ -9,3 +9,4 @@
 | How to Search the KB | qa | ./.claude/qa/how-to-search-the-kb.md | search, usage | dogfooding-knowledge-base | 2025-10-23 |
 | Release 0.1.1 Prep | metadata | ./.claude/metadata/release-0-1-1-prep.md | release, 0.1.1 | dogfooding-knowledge-base | 2025-10-23 |
 | Release 0.2.0 Prep | metadata | ./.claude/metadata/release-0-2-0-prep.md | release, roadmap | dogfooding-knowledge-base | 2025-10-23 |
+| Release 0.3.0 Prep | metadata | ./.claude/metadata/release-0-3-0-prep.md | release, roadmap | dogfooding-knowledge-base, release-0-2-0-prep | 2025-10-23 |
