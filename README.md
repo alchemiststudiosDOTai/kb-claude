@@ -2,7 +2,7 @@
 
 ## 1. Philosophy
 
-`kb-claude` is not a notes app or a static site generator. It is a *living knowledge base manager* for engineering projects—equal parts changelog, research archive, and design journal.
+`kb-claude` is not a notes app or a static site generator. It is a _living knowledge base manager_ for engineering projects—equal parts changelog, research archive, and design journal.
 
 Every entry is an **ontological Markdown file**: a typed piece of knowledge that belongs inside a shared mental model. Instead of scattered notes, the tool enforces a single rule:
 
