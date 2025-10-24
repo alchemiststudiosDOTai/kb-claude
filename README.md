@@ -97,7 +97,7 @@ Future directions: semantic search (Tantivy/SQLite), ontology graphs, automated 
 
 ## 9. Getting Started
 
-Install from crates.io:
+Install from [crates.io](https://crates.io/crates/claude-kb-cli):
 
 ```bash
 cargo install claude-kb-cli
