@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Using This Project to Manage This Project
-This project was designed through dogfooding—we install the `kb-claude` crate, which provides the `kb-claude` binary used to manage our knowledge base. Developers should invoke `kb-claude` to capture debugging sessions, architecture decisions, and recurring insights. Use `kb-claude new`, `kb-claude search`, and the other subcommands to maintain our institutional memory about this project's development.
+This project was designed through dogfooding—we install the `claude-kb-cli` crate, which provides the `kb-claude` binary used to manage our knowledge base. Developers should invoke `kb-claude` to capture debugging sessions, architecture decisions, and recurring insights. Use `kb-claude new`, `kb-claude search`, and the other subcommands to maintain our institutional memory about this project's development.
 
 Knowledge base structure:
 ```
@@ -19,7 +19,7 @@ Knowledge base structure:
 Think of it as your project's institutional memory: capture debugging sessions, architecture decisions, and recurring insights as searchable, version-controlled knowledge.
 
 ## Project Structure & Module Organization
-`src/main.rs` pipes the binary into `kb_claude::cli::run`, while `src/lib.rs`, `src/model.rs`, and `src/fs.rs` host domain logic and filesystem helpers. Subcommands sit in `src/cli/` as one file per action (`init.rs`, `manifest.rs`, `validate.rs`, etc.), so mirror that pattern for new features. Integration tests live under `tests/`, docs under `docs/`, and build output in `target/`; keep scratch `.claude/` folders out of commits.
+`src/main.rs` pipes the binary into `claude_kb_cli::cli::run`, while `src/lib.rs`, `src/model.rs`, and `src/fs.rs` host domain logic and filesystem helpers. Subcommands sit in `src/cli/` as one file per action (`init.rs`, `manifest.rs`, `validate.rs`, etc.), so mirror that pattern for new features. Integration tests live under `tests/`, docs under `docs/`, and build output in `target/`; keep scratch `.claude/` folders out of commits.
 
 ## Workflow Overview
 Replace "prompt → copy → paste → hope it works" with a repeatable loop: 1) Define – state the problem, inputs/outputs, and success gates before requesting help. 2) Test – outline the minimal CLI transcripts or integration cases that must pass. 3) Build – combine AI drafts with hand-written Rust to keep modules focused and reusable. 4) Document – log intent, assumptions, and tool usage in comments or `.claude/` notes. 5) Review – run format, lint, and test commands, then confirm the solution still matches the original definition.

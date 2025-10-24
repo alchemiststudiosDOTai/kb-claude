@@ -1,6 +1,6 @@
 # Release Guide
 
-This repository ships the `kb-claude` crate, which installs the `kb-claude` binary. Follow the steps below whenever preparing a new release.
+This repository ships the `claude-kb-cli` crate, which installs the `kb-claude` binary. Follow the steps below whenever preparing a new release.
 
 ## 1. Preflight
 - Ensure you have the latest Rust stable toolchain installed (`rustup update`).
@@ -33,7 +33,7 @@ This repository ships the `kb-claude` crate, which installs the `kb-claude` bina
 ## 5. Publish
 - Tag the release: `git tag vX.Y.Z && git push origin vX.Y.Z`.
 - Publish for real: `cargo publish`.
-- Verify on crates.io: `https://crates.io/crates/kb-claude`.
+- Verify on crates.io: `https://crates.io/crates/claude-kb-cli`.
 
 ## 6. Post-Release
 - Push docs/notes updates to `master`.
