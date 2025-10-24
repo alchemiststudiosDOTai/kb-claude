@@ -1,6 +1,6 @@
 [package]
-name = "claude-kb-cli"
-version = "0.3.0"
+name = "kb-claude"
+version = "0.3.1"
 edition = "2021"
 description = "CLI for generating, validating, and searching Markdown knowledge bases under a .claude/ hierarchy."
 license = "MIT"
