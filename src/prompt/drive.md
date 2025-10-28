@@ -35,13 +35,17 @@ Start by running the following CLI commands to manage your project's knowledge b
 </cli_commands>
 
 .claude/
-metadata/ component summaries
-debug_history/ debugging timelines
-qa/ Q&A and learning notes
-code_index/ file or module references
-patterns/ reusable fixes or design motifs
-cheatsheets/ quick references or how-tos
-memory_anchors/ core concepts tracked by UUID
-manifest.md automatically generated summary
+├── metadata/          # component summaries
+├── debug_history/     # debugging timelines
+├── qa/               # Q&A and learning notes
+├── code_index/       # file or module references
+├── patterns/         # reusable fixes or design motifs
+├── plans/            # project and release plans
+├── other/            # scratch notes ignored by the CLI
+├── cheatsheets/      # quick references or how-tos
+├── memory_anchors/   # core concepts tracked by UUID
+└── manifest.md       # automatically generated summary
 
 Think of it as your project's institutional memory: capture debugging sessions, architecture decisions, and recurring insights as searchable, version-controlled knowledge.
+
+Note: Use `.claude/other/` for ad-hoc notes—the CLI skips anything under that folder.
