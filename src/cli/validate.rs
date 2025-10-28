@@ -85,6 +85,10 @@ fn collect_findings(claude_root: &Path, layout: &ClaudePaths) -> Result<Vec<Find
         let entry = entry?;
         let path = entry.path();
 
+        if crate::fs::is_ignored_path(path, claude_root) {
+            continue;
+        }
+
         if path != claude_root && is_hidden(path) {
             continue;
         }

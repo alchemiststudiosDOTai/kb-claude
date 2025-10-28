@@ -29,12 +29,14 @@ The result is a transparent, text-native system that thrives in version control.
   qa/              Q&A and learning notes
   code_index/      file or module references
   patterns/        reusable fixes or design motifs
+  plans/           project and release plans
+  other/           scratch notes ignored by the CLI
   cheatsheets/     quick references or how-tos
   memory_anchors/  core concepts tracked by UUID
   manifest.md      automatically generated summary
 ```
 
-Each subdirectory is a distinct knowledge type. When creating entries, `type:` must match one of these folder names.
+Each subdirectory is a distinct knowledge type. When creating entries, `type:` must match one of these folder names. Use `.claude/other/` for ad-hoc notes—the CLI skips anything under that folder.
 
 ## 4. Document Structure
 

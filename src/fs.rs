@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{Context, Result};
 
@@ -11,9 +11,12 @@ pub const CLAUDE_DIRECTORIES: &[&str] = &[
     "qa",
     "code_index",
     "patterns",
+    "plans",
     "cheatsheets",
     "memory_anchors",
 ];
+
+pub const IGNORED_DIRECTORIES: &[&str] = &["other"];
 
 #[derive(Debug, Clone)]
 pub struct ClaudePaths {
@@ -57,6 +60,17 @@ impl ClaudePaths {
         }
         Ok(())
     }
+}
+
+pub fn is_ignored_path(path: &Path, claude_root: &Path) -> bool {
+    if let Ok(relative) = path.strip_prefix(claude_root) {
+        if let Some(Component::Normal(component)) = relative.components().next() {
+            if let Some(name) = component.to_str() {
+                return IGNORED_DIRECTORIES.contains(&name);
+            }
+        }
+    }
+    false
 }
 
 pub fn claude_root_from(base: impl AsRef<Path>) -> PathBuf {

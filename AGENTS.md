@@ -11,6 +11,8 @@ Knowledge base structure:
 ├── qa/               # Q&A and learning notes
 ├── code_index/       # file or module references
 ├── patterns/         # reusable fixes or design motifs
+├── plans/            # project and release plans
+├── other/            # scratch notes ignored by the CLI
 ├── cheatsheets/      # quick references or how-tos
 ├── memory_anchors/   # core concepts tracked by UUID
 └── manifest.md       # automatically generated summary

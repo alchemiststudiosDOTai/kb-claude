@@ -1,5 +1,5 @@
 ---
-title: src/prompt directory for Claude Code prompts
+title: Prompt Directory
 link: prompt-directory
 type: metadata
 ontological_relations:
@@ -9,7 +9,7 @@ tags:
   - prompts
   - tooling
 created_at: 2025-10-24T13:25:00Z
-updated_at: 2025-10-24T13:25:00Z
+updated_at: 2025-10-28T00:00:00Z
 uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ---
 

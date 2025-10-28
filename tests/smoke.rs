@@ -54,6 +54,10 @@ fn end_to_end_flow() -> Result<(), Box<dyn std::error::Error>> {
     let alpha_content = fs::read_to_string(alpha_path.path())?;
     assert!(alpha_content.contains("relates_to: beta-node"));
 
+    temp.child(".claude/other").create_dir_all()?;
+    temp.child(".claude/other/ignore-me.md")
+        .write_str("this file is intentionally invalid")?;
+
     Command::cargo_bin("kb-claude")?
         .current_dir(temp.path())
         .arg("manifest")
@@ -93,6 +97,7 @@ fn assert_layout(temp: &TempDir) {
         ".claude/qa",
         ".claude/code_index",
         ".claude/patterns",
+        ".claude/plans",
         ".claude/cheatsheets",
         ".claude/memory_anchors",
     ];

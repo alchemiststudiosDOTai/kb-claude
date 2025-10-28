@@ -86,6 +86,10 @@ fn collect_documents(claude_root: &Path) -> Result<Vec<DocumentEntry>> {
             continue;
         }
 
+        if crate::fs::is_ignored_path(path, claude_root) {
+            continue;
+        }
+
         if path.extension().is_none_or(|ext| ext != "md") {
             continue;
         }
