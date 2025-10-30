@@ -16,8 +16,6 @@ pub const CLAUDE_DIRECTORIES: &[&str] = &[
     "memory_anchors",
 ];
 
-pub const IGNORED_DIRECTORIES: &[&str] = &["other"];
-
 #[derive(Debug, Clone)]
 pub struct ClaudePaths {
     root: PathBuf,
@@ -66,7 +64,7 @@ pub fn is_ignored_path(path: &Path, claude_root: &Path) -> bool {
     if let Ok(relative) = path.strip_prefix(claude_root) {
         if let Some(Component::Normal(component)) = relative.components().next() {
             if let Some(name) = component.to_str() {
-                return IGNORED_DIRECTORIES.contains(&name);
+                return !CLAUDE_DIRECTORIES.contains(&name);
             }
         }
     }
