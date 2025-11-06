@@ -81,11 +81,24 @@ Quick lookup for identified cleanup tasks. See `tidy-first-cleanup-strategy.md` 
 
 | Priority | Completed | Total | % Done |
 |----------|-----------|-------|--------|
-| P1 (Dead Code) | 0 | 1 | 0% |
-| P2 (Duplication) | 0 | 3 | 0% |
-| P3 (Clarity) | 0 | 4 | 0% |
+| P1 (Dead Code) | 1 | 1 | 100% ✅ |
+| P2 (Duplication) | 2 | 3 | 67% |
+| P3 (Clarity) | 3 | 4 | 75% |
 | P4 (Structure) | 0 | 1 | 0% |
-| **TOTAL** | **0** | **9** | **0%** |
+| **TOTAL** | **6** | **9** | **67%** |
+
+### ✅ Completed Tasks (PR #TBD - Commit 60ac00f)
+- ✅ P1: Delete `new_uuid()` and `now_timestamp()` - [model.rs]
+- ✅ P2.1: Consolidate `display_relative` functions - [fs.rs, init.rs, new.rs, link.rs]
+- ✅ P2.2: Extract "find root" pattern - [fs.rs + 5 CLI files]
+- ✅ P3.1: Simplify `insert_relation` guard clauses - [link.rs]
+- ✅ P3.2: Extract magic string constants - [fs.rs + all CLI files]
+- ✅ P3.3: Extract nil UUID explaining variable - [validate.rs]
+
+### 🔜 Remaining Tasks
+- ⏳ P2.3: Consolidate file walking logic (bigger refactor)
+- ⏳ P3.4: Reorder functions in init.rs (quick win)
+- ⏳ P4.1: Create path utilities module (structural)
 
 ## 🔗 Related Documents
 
