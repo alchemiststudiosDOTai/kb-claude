@@ -16,6 +16,13 @@ pub const CLAUDE_DIRECTORIES: &[&str] = &[
     "memory_anchors",
 ];
 
+// Common error messages
+pub const CURRENT_DIR_ERROR: &str = "Unable to determine current directory";
+pub const NO_CLAUDE_DIR_ERROR: &str = "No .claude directory found under {}. Run `kb-claude init` first.";
+
+// File extensions
+pub const MD_EXTENSION: &str = "md";
+
 #[derive(Debug, Clone)]
 pub struct ClaudePaths {
     root: PathBuf,
@@ -86,5 +93,24 @@ pub fn find_existing_root(start: impl AsRef<Path>) -> Option<PathBuf> {
             Some(parent) => current = parent,
             None => return None,
         }
+    }
+}
+
+/// Resolves the claude root directory from the current working directory.
+/// Returns both the current working directory and the claude root path.
+pub fn resolve_claude_root_from_cwd() -> Result<(PathBuf, PathBuf)> {
+    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
+    let claude_root = find_existing_root(&cwd).unwrap_or_else(|| claude_root_from(&cwd));
+    Ok((cwd, claude_root))
+}
+
+/// Displays a path relative to a workspace directory.
+/// Returns a string like "./{relative_path}" for paths under workspace,
+/// or the absolute path if not under workspace.
+pub fn display_relative(workspace: &Path, path: &Path) -> String {
+    match path.strip_prefix(workspace) {
+        Ok(relative) if relative.as_os_str().is_empty() => ".".to_string(),
+        Ok(relative) => format!("./{}", relative.display()),
+        Err(_) => path.display().to_string(),
     }
 }

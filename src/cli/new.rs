@@ -5,12 +5,11 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Context, Result};
 
 use super::NewArgs;
-use crate::fs::{claude_root_from, find_existing_root, ClaudePaths};
+use crate::fs::{display_relative, resolve_claude_root_from_cwd, ClaudePaths};
 use crate::model::{Document, DocumentFrontMatter, OntologicalRelation};
 
 pub fn run(args: NewArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
-    let claude_root = find_existing_root(&cwd).unwrap_or_else(|| claude_root_from(&cwd));
+    let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
     let workspace = claude_root
         .parent()
         .map(Path::to_path_buf)
@@ -57,7 +56,7 @@ pub fn run(args: NewArgs) -> Result<()> {
 
     println!(
         "Created {}",
-        display_relative(&workspace, &output_path, claude_root.file_name())
+        display_relative(&workspace, &output_path)
     );
 
     Ok(())
@@ -211,21 +210,4 @@ fn ensure_parent_dirs(path: &Path) -> Result<()> {
             .with_context(|| format!("Unable to create {}", parent.display()))?;
     }
     Ok(())
-}
-
-fn display_relative(
-    workspace: &Path,
-    path: &Path,
-    claude_dir_name: Option<&std::ffi::OsStr>,
-) -> String {
-    if let Some(claude_dir) = claude_dir_name.and_then(|os| os.to_str()) {
-        let claude_root = workspace.join(claude_dir);
-        if let Ok(relative) = path.strip_prefix(&claude_root) {
-            return format!("./{}/{}", claude_dir, relative.display());
-        }
-    }
-    match path.strip_prefix(workspace) {
-        Ok(relative) => format!("./{}", relative.display()),
-        Err(_) => path.display().to_string(),
-    }
 }
