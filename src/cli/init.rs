@@ -1,10 +1,9 @@
-use std::borrow::Cow;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::fs::{claude_root_from, ClaudePaths, CLAUDE_DIRECTORIES};
+use crate::fs::{claude_root_from, display_relative, ClaudePaths, CLAUDE_DIRECTORIES, CURRENT_DIR_ERROR};
 
 use super::InitArgs;
 
@@ -35,7 +34,7 @@ fn normalize_workspace(path: &Path) -> Result<PathBuf> {
     if path.is_absolute() {
         return Ok(path.to_path_buf());
     }
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
+    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
     Ok(cwd.join(path))
 }
 
@@ -91,17 +90,5 @@ fn report_execution(workspace: &Path, claude_root: &Path, planned: &[PathBuf]) {
     );
     for path in planned {
         println!("  created {}", display_relative(workspace, path));
-    }
-}
-
-fn display_relative<'a>(workspace: &Path, path: &'a Path) -> Cow<'a, str> {
-    if path == workspace {
-        return Cow::Borrowed(".");
-    }
-
-    match path.strip_prefix(workspace) {
-        Ok(relative) if relative.as_os_str().is_empty() => Cow::Borrowed("."),
-        Ok(relative) => Cow::Owned(format!("./{}", relative.display())),
-        Err(_) => Cow::Owned(path.display().to_string()),
     }
 }

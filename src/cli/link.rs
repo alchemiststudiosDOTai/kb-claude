@@ -5,7 +5,7 @@ use anyhow::{bail, Context, Result};
 use walkdir::WalkDir;
 
 use super::LinkArgs;
-use crate::fs::{claude_root_from, find_existing_root};
+use crate::fs::{display_relative, resolve_claude_root_from_cwd, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
 use crate::model::{Document, OntologicalRelation};
 
 pub fn run(args: LinkArgs) -> Result<()> {
@@ -13,14 +13,10 @@ pub fn run(args: LinkArgs) -> Result<()> {
         bail!("Source and target must be different links.");
     }
 
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
-    let claude_root = find_existing_root(&cwd).unwrap_or_else(|| claude_root_from(&cwd));
+    let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
 
     if !claude_root.exists() {
-        bail!(
-            "No .claude directory found under {}. Run `kb-claude init` first.",
-            cwd.display()
-        );
+        bail!(NO_CLAUDE_DIR_ERROR, cwd.display());
     }
 
     let mut source = load_document(&claude_root, &args.source)?;
@@ -78,7 +74,7 @@ fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentRecord> {
             continue;
         }
 
-        if path.extension().is_none_or(|ext| ext != "md") {
+        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
             continue;
         }
 
@@ -118,19 +114,20 @@ fn insert_relation(document: &mut Document, target_link: &str, force: bool) -> b
         .iter()
         .any(|relation| relation.relates_to == target_link);
 
+    // Guard: early return if relation exists and not forcing
     if exists && !force {
         return false;
     }
 
+    // Only add if doesn't exist or we're forcing
     if !exists || force {
         relations.push(OntologicalRelation {
             relates_to: target_link.to_string(),
         });
         document.front_matter.touch_updated();
-        return true;
     }
 
-    false
+    true
 }
 
 fn write_document(record: &DocumentRecord) -> Result<()> {
@@ -138,10 +135,4 @@ fn write_document(record: &DocumentRecord) -> Result<()> {
     fs::write(&record.path, content)
         .with_context(|| format!("Unable to write {}", record.path.display()))?;
     Ok(())
-}
-
-fn display_relative(cwd: &Path, path: &Path) -> String {
-    path.strip_prefix(cwd)
-        .map(|relative| format!("./{}", relative.display()))
-        .unwrap_or_else(|_| path.display().to_string())
 }

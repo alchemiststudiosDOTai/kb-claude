@@ -5,19 +5,16 @@ use anyhow::{bail, Context, Result};
 use walkdir::WalkDir;
 
 use super::ManifestArgs;
-use crate::fs::{claude_root_from, find_existing_root, ClaudePaths};
+use crate::fs::{claude_root_from, find_existing_root, ClaudePaths, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
 use crate::model::Document;
 
 pub fn run(args: ManifestArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
+    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
     let base_dir = args.directory.as_deref().unwrap_or(&cwd);
     let claude_root = find_existing_root(base_dir).unwrap_or_else(|| claude_root_from(base_dir));
 
     if !claude_root.exists() {
-        bail!(
-            "No .claude directory found under {}. Run `kb-claude init` first.",
-            base_dir.display()
-        );
+        bail!(NO_CLAUDE_DIR_ERROR, base_dir.display());
     }
 
     let layout = ClaudePaths::new(claude_root.clone());
@@ -70,7 +67,7 @@ fn collect_entries(claude_root: &Path) -> Result<Vec<ManifestEntry>> {
             continue;
         }
 
-        if path.extension().is_none_or(|ext| ext != "md") {
+        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
             continue;
         }
 

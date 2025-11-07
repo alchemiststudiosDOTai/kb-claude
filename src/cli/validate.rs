@@ -5,20 +5,17 @@ use anyhow::{anyhow, bail, Context, Result};
 use walkdir::WalkDir;
 
 use super::ValidateArgs;
-use crate::fs::{claude_root_from, find_existing_root, ClaudePaths};
+use crate::fs::{claude_root_from, find_existing_root, ClaudePaths, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
 use crate::model::Document;
 
 pub fn run(args: ValidateArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
+    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
     let target_dir = args.directory.as_deref().unwrap_or(&cwd);
     let claude_root =
         find_existing_root(target_dir).unwrap_or_else(|| claude_root_from(target_dir));
 
     if !claude_root.exists() {
-        bail!(
-            "No .claude directory found under {}. Run `kb-claude init` first.",
-            target_dir.display()
-        );
+        bail!(NO_CLAUDE_DIR_ERROR, target_dir.display());
     }
 
     let workspace = claude_root
@@ -104,7 +101,7 @@ fn collect_findings(claude_root: &Path, layout: &ClaudePaths) -> Result<Vec<Find
             continue;
         }
 
-        if path.extension().is_none_or(|ext| ext != "md") {
+        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
             continue;
         }
 
@@ -160,7 +157,8 @@ fn validate_document(
         findings.push(error(path, "Missing `type`"));
     }
 
-    if front.uuid.as_bytes().iter().all(|byte| *byte == 0) {
+    let is_nil_uuid = front.uuid.as_bytes().iter().all(|byte| *byte == 0);
+    if is_nil_uuid {
         findings.push(error(path, "`uuid` cannot be nil"));
     }
 

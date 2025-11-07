@@ -5,18 +5,14 @@ use anyhow::{bail, Context, Result};
 use walkdir::WalkDir;
 
 use super::SearchArgs;
-use crate::fs::{claude_root_from, find_existing_root};
+use crate::fs::{resolve_claude_root_from_cwd, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
 use crate::model::Document;
 
 pub fn run(args: SearchArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context("Unable to determine current directory")?;
-    let claude_root = find_existing_root(&cwd).unwrap_or_else(|| claude_root_from(&cwd));
+    let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
 
     if !claude_root.exists() {
-        bail!(
-            "No .claude directory found under {}. Run `kb-claude init` first.",
-            cwd.display()
-        );
+        bail!(NO_CLAUDE_DIR_ERROR, cwd.display());
     }
 
     let terms: Vec<String> = args.terms.iter().map(|term| term.to_lowercase()).collect();
@@ -90,7 +86,7 @@ fn collect_documents(claude_root: &Path) -> Result<Vec<DocumentEntry>> {
             continue;
         }
 
-        if path.extension().is_none_or(|ext| ext != "md") {
+        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
             continue;
         }
 

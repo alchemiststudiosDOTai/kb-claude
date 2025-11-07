@@ -138,14 +138,6 @@ pub fn slugify(input: &str) -> String {
     }
 }
 
-pub fn new_uuid() -> Uuid {
-    Uuid::new_v4()
-}
-
-pub fn now_timestamp() -> DateTime<Utc> {
-    Utc::now()
-}
-
 pub mod iso8601 {
     use std::str::FromStr;
 
