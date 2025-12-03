@@ -1,21 +1,19 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, bail, Context, Result};
-use walkdir::WalkDir;
+use anyhow::{anyhow, bail, Result};
 
 use super::ValidateArgs;
-use crate::fs::{claude_root_from, find_existing_root, ClaudePaths, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
+use crate::fs::{resolve_claude_root, walk_kb_documents, ClaudePaths};
 use crate::model::Document;
 
 pub fn run(args: ValidateArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
-    let target_dir = args.directory.as_deref().unwrap_or(&cwd);
-    let claude_root =
-        find_existing_root(target_dir).unwrap_or_else(|| claude_root_from(target_dir));
+    let (target_dir, claude_root) = resolve_claude_root(args.directory.as_deref())?;
 
     if !claude_root.exists() {
-        bail!(NO_CLAUDE_DIR_ERROR, target_dir.display());
+        bail!(
+            "No .claude directory found under {}. Run `kb-claude init` first.",
+            target_dir.display()
+        );
     }
 
     let workspace = claude_root
@@ -78,59 +76,27 @@ struct Finding {
 fn collect_findings(claude_root: &Path, layout: &ClaudePaths) -> Result<Vec<Finding>> {
     let mut findings = Vec::new();
 
-    for entry in WalkDir::new(claude_root) {
-        let entry = entry?;
-        let path = entry.path();
+    for entry_result in walk_kb_documents(claude_root) {
+        match entry_result {
+            Ok(entry) => {
+                let path = &entry.path;
 
-        if crate::fs::is_ignored_path(path, claude_root) {
-            continue;
-        }
+                if path != claude_root && is_hidden(path) {
+                    continue;
+                }
 
-        if path != claude_root && is_hidden(path) {
-            continue;
-        }
-
-        if !entry.file_type().is_file() {
-            continue;
-        }
-
-        if path
-            .file_name()
-            .is_some_and(|name| name == crate::fs::MANIFEST_FILE)
-        {
-            continue;
-        }
-
-        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
-            continue;
-        }
-
-        let content = match fs::read_to_string(path) {
-            Ok(value) => value,
+                let errors = validate_document(path, claude_root, layout, &entry.document)?;
+                findings.extend(errors);
+            }
             Err(error) => {
+                let error_msg = format!("{error:#}");
                 findings.push(Finding {
-                    path: path.to_path_buf(),
-                    message: format!("Unable to read file: {error}"),
+                    path: PathBuf::new(),
+                    message: error_msg,
                     severity: Severity::Error,
                 });
-                continue;
             }
-        };
-
-        let document = match Document::parse(&content) {
-            Ok(doc) => doc,
-            Err(error) => {
-                findings.push(Finding {
-                    path: path.to_path_buf(),
-                    message: format!("Invalid front matter: {error:#}"),
-                    severity: Severity::Error,
-                });
-                continue;
-            }
-        };
-
-        let errors = validate_document(path, claude_root, layout, &document)?;
-        findings.extend(errors);
+        }
     }
 
     Ok(findings)

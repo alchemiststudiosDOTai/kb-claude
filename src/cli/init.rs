@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::fs::{claude_root_from, display_relative, ClaudePaths, CLAUDE_DIRECTORIES, CURRENT_DIR_ERROR};
+use crate::fs::{
+    claude_root_from, display_relative, ClaudePaths, CLAUDE_DIRECTORIES, CURRENT_DIR_ERROR,
+};
 
 use super::InitArgs;
 
@@ -13,7 +15,7 @@ pub fn run(args: InitArgs) -> Result<()> {
     let planned = plan_layout(&workspace, &claude_root);
 
     if args.dry_run {
-        report_dry_run(&workspace, &claude_root, &planned);
+        report_changes(&workspace, &claude_root, &planned, ReportMode::DryRun);
         return Ok(());
     }
 
@@ -25,7 +27,7 @@ pub fn run(args: InitArgs) -> Result<()> {
     let layout = ClaudePaths::new(claude_root.clone());
     layout.ensure_layout()?;
 
-    report_execution(&workspace, &claude_root, &planned);
+    report_changes(&workspace, &claude_root, &planned, ReportMode::Execution);
 
     Ok(())
 }
@@ -57,38 +59,32 @@ fn plan_layout(workspace: &Path, claude_root: &Path) -> Vec<PathBuf> {
     planned
 }
 
-fn report_dry_run(workspace: &Path, claude_root: &Path, planned: &[PathBuf]) {
-    if planned.is_empty() {
-        println!(
-            "Dry run: .claude hierarchy already exists at {}",
-            claude_root.display()
-        );
-        return;
-    }
-
-    println!(
-        "Dry run: would initialize .claude hierarchy under {}",
-        claude_root.display()
-    );
-    for path in planned {
-        println!("  + {}", display_relative(workspace, path));
-    }
+enum ReportMode {
+    DryRun,
+    Execution,
 }
 
-fn report_execution(workspace: &Path, claude_root: &Path, planned: &[PathBuf]) {
+fn report_changes(workspace: &Path, claude_root: &Path, planned: &[PathBuf], mode: ReportMode) {
+    let (empty_msg, header_msg, prefix) = match mode {
+        ReportMode::DryRun => (
+            "Dry run: .claude hierarchy already exists at",
+            "Dry run: would initialize .claude hierarchy under",
+            "  + ",
+        ),
+        ReportMode::Execution => (
+            "No changes needed; .claude hierarchy already present at",
+            "Initialized .claude hierarchy under",
+            "  created ",
+        ),
+    };
+
     if planned.is_empty() {
-        println!(
-            "No changes needed; .claude hierarchy already present at {}",
-            claude_root.display()
-        );
+        println!("{} {}", empty_msg, claude_root.display());
         return;
     }
 
-    println!(
-        "Initialized .claude hierarchy under {}",
-        claude_root.display()
-    );
+    println!("{} {}", header_msg, claude_root.display());
     for path in planned {
-        println!("  created {}", display_relative(workspace, path));
+        println!("{}{}", prefix, display_relative(workspace, path));
     }
 }

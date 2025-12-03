@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{Context, Result};
+use walkdir::WalkDir;
 
 pub const CLAUDE_ROOT: &str = ".claude";
 pub const MANIFEST_FILE: &str = "manifest.md";
@@ -18,7 +19,8 @@ pub const CLAUDE_DIRECTORIES: &[&str] = &[
 
 // Common error messages
 pub const CURRENT_DIR_ERROR: &str = "Unable to determine current directory";
-pub const NO_CLAUDE_DIR_ERROR: &str = "No .claude directory found under {}. Run `kb-claude init` first.";
+pub const NO_CLAUDE_DIR_ERROR: &str =
+    "No .claude directory found under {}. Run `kb-claude init` first.";
 
 // File extensions
 pub const MD_EXTENSION: &str = "md";
@@ -96,21 +98,85 @@ pub fn find_existing_root(start: impl AsRef<Path>) -> Option<PathBuf> {
     }
 }
 
-/// Resolves the claude root directory from the current working directory.
-/// Returns both the current working directory and the claude root path.
 pub fn resolve_claude_root_from_cwd() -> Result<(PathBuf, PathBuf)> {
     let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
     let claude_root = find_existing_root(&cwd).unwrap_or_else(|| claude_root_from(&cwd));
     Ok((cwd, claude_root))
 }
 
-/// Displays a path relative to a workspace directory.
-/// Returns a string like "./{relative_path}" for paths under workspace,
-/// or the absolute path if not under workspace.
+pub fn resolve_claude_root(base_dir: Option<&Path>) -> Result<(PathBuf, PathBuf)> {
+    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
+    let target_dir = base_dir.unwrap_or(&cwd);
+    let claude_root =
+        find_existing_root(target_dir).unwrap_or_else(|| claude_root_from(target_dir));
+    Ok((target_dir.to_path_buf(), claude_root))
+}
+
 pub fn display_relative(workspace: &Path, path: &Path) -> String {
     match path.strip_prefix(workspace) {
         Ok(relative) if relative.as_os_str().is_empty() => ".".to_string(),
         Ok(relative) => format!("./{}", relative.display()),
         Err(_) => path.display().to_string(),
     }
+}
+
+#[derive(Debug)]
+pub struct DocumentEntry {
+    pub path: PathBuf,
+    pub document: crate::model::Document,
+}
+
+pub fn walk_kb_documents(claude_root: &Path) -> impl Iterator<Item = Result<DocumentEntry>> + '_ {
+    WalkDir::new(claude_root)
+        .into_iter()
+        .filter_map(move |entry| {
+            let entry = match entry {
+                Ok(e) => e,
+                Err(e) => return Some(Err(e.into())),
+            };
+            let path = entry.path();
+
+            if !entry.file_type().is_file() {
+                return None;
+            }
+
+            if path.file_name().is_some_and(|name| name == MANIFEST_FILE) {
+                return None;
+            }
+
+            if is_ignored_path(path, claude_root) {
+                return None;
+            }
+
+            if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
+                return None;
+            }
+
+            let content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(e) => {
+                    return Some(Err(anyhow::anyhow!(
+                        "Unable to read {}: {}",
+                        path.display(),
+                        e
+                    )));
+                }
+            };
+
+            let document = match crate::model::Document::parse(&content) {
+                Ok(doc) => doc,
+                Err(e) => {
+                    return Some(Err(anyhow::anyhow!(
+                        "Unable to parse {}: {}",
+                        path.display(),
+                        e
+                    )));
+                }
+            };
+
+            Some(Ok(DocumentEntry {
+                path: path.to_path_buf(),
+                document,
+            }))
+        })
 }

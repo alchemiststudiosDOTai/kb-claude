@@ -1,18 +1,18 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
-use walkdir::WalkDir;
+use anyhow::{bail, Result};
 
 use super::SearchArgs;
-use crate::fs::{resolve_claude_root_from_cwd, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
-use crate::model::Document;
+use crate::fs::{resolve_claude_root_from_cwd, walk_kb_documents};
 
 pub fn run(args: SearchArgs) -> Result<()> {
     let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
 
     if !claude_root.exists() {
-        bail!(NO_CLAUDE_DIR_ERROR, cwd.display());
+        bail!(
+            "No .claude directory found under {}. Run `kb-claude init` first.",
+            cwd.display()
+        );
     }
 
     let terms: Vec<String> = args.terms.iter().map(|term| term.to_lowercase()).collect();
@@ -50,12 +50,6 @@ pub fn run(args: SearchArgs) -> Result<()> {
 }
 
 #[derive(Debug)]
-struct DocumentEntry {
-    path: PathBuf,
-    document: Document,
-}
-
-#[derive(Debug)]
 struct SearchMatch {
     title: String,
     doc_type: String,
@@ -64,49 +58,13 @@ struct SearchMatch {
     score: usize,
 }
 
-fn collect_documents(claude_root: &Path) -> Result<Vec<DocumentEntry>> {
-    let mut entries = Vec::new();
-
-    for entry in WalkDir::new(claude_root) {
-        let entry = entry?;
-        let path = entry.path();
-
-        if !entry.file_type().is_file() {
-            continue;
-        }
-
-        if path
-            .file_name()
-            .is_some_and(|name| name == crate::fs::MANIFEST_FILE)
-        {
-            continue;
-        }
-
-        if crate::fs::is_ignored_path(path, claude_root) {
-            continue;
-        }
-
-        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
-            continue;
-        }
-
-        let content = fs::read_to_string(path)
-            .with_context(|| format!("Unable to read {}", path.display()))?;
-        let document = Document::parse(&content)
-            .with_context(|| format!("Unable to parse {}", path.display()))?;
-
-        entries.push(DocumentEntry {
-            path: path.to_path_buf(),
-            document,
-        });
-    }
-
-    Ok(entries)
+fn collect_documents(claude_root: &Path) -> Result<Vec<crate::fs::DocumentEntry>> {
+    walk_kb_documents(claude_root).collect()
 }
 
 fn filter_match(
     claude_root: &Path,
-    entry: &DocumentEntry,
+    entry: &crate::fs::DocumentEntry,
     terms: &[String],
     tag_filters: &[String],
 ) -> Option<SearchMatch> {

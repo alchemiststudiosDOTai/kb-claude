@@ -2,26 +2,25 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use walkdir::WalkDir;
 
 use super::ManifestArgs;
-use crate::fs::{claude_root_from, find_existing_root, ClaudePaths, CURRENT_DIR_ERROR, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
-use crate::model::Document;
+use crate::fs::{resolve_claude_root, walk_kb_documents, ClaudePaths};
 
 pub fn run(args: ManifestArgs) -> Result<()> {
-    let cwd = std::env::current_dir().context(CURRENT_DIR_ERROR)?;
-    let base_dir = args.directory.as_deref().unwrap_or(&cwd);
-    let claude_root = find_existing_root(base_dir).unwrap_or_else(|| claude_root_from(base_dir));
+    let (base_dir, claude_root) = resolve_claude_root(args.directory.as_deref())?;
 
     if !claude_root.exists() {
-        bail!(NO_CLAUDE_DIR_ERROR, base_dir.display());
+        bail!(
+            "No .claude directory found under {}. Run `kb-claude init` first.",
+            base_dir.display()
+        );
     }
 
     let layout = ClaudePaths::new(claude_root.clone());
     let entries = collect_entries(&claude_root)?;
 
     let manifest_content = render_manifest(&claude_root, &entries)?;
-    let output_path = resolve_output_path(&cwd, &layout, args.output.as_ref())?;
+    let output_path = resolve_output_path(&base_dir, &layout, args.output.as_ref())?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)
@@ -48,51 +47,27 @@ struct ManifestEntry {
 fn collect_entries(claude_root: &Path) -> Result<Vec<ManifestEntry>> {
     let mut entries = Vec::new();
 
-    for entry in WalkDir::new(claude_root) {
-        let entry = entry?;
-        let path = entry.path();
-
-        if !entry.file_type().is_file() {
-            continue;
-        }
-
-        if path
-            .file_name()
-            .is_some_and(|name| name == crate::fs::MANIFEST_FILE)
-        {
-            continue;
-        }
-
-        if crate::fs::is_ignored_path(path, claude_root) {
-            continue;
-        }
-
-        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
-            continue;
-        }
-
-        let content = fs::read_to_string(path)
-            .with_context(|| format!("Unable to read {}", path.display()))?;
-        let document = Document::parse(&content)
-            .with_context(|| format!("Unable to parse {}", path.display()))?;
-
-        let relative = path
+    for entry_result in walk_kb_documents(claude_root) {
+        let entry = entry_result?;
+        let relative = entry
+            .path
             .strip_prefix(claude_root.parent().unwrap_or(claude_root))
-            .unwrap_or(path)
+            .unwrap_or(&entry.path)
             .to_path_buf();
 
         entries.push(ManifestEntry {
-            title: document.front_matter.title.clone(),
-            doc_type: document.front_matter.doc_type.clone(),
+            title: entry.document.front_matter.title.clone(),
+            doc_type: entry.document.front_matter.doc_type.clone(),
             relative_path: relative,
-            tags: document.front_matter.tags.clone(),
-            relations: document
+            tags: entry.document.front_matter.tags.clone(),
+            relations: entry
+                .document
                 .front_matter
                 .ontological_relations
                 .iter()
                 .map(|relation| relation.relates_to.clone())
                 .collect(),
-            updated_at: document.front_matter.updated_at.date_naive(),
+            updated_at: entry.document.front_matter.updated_at.date_naive(),
         });
     }
 

@@ -1,5 +1,12 @@
 # Repository Guidelines
 
+Inner Development Loop
+While working on our project, we will be going through the same steps over and over again:
+• Make a change;
+• Compile the application;
+• Run tests;
+• Run the application.
+
 ## Using This Project to Manage This Project
 This project was designed through dogfooding—we install the `claude-kb-cli` crate, which provides the `kb-claude` binary used to manage our knowledge base. Developers should invoke `kb-claude` to capture debugging sessions, architecture decisions, and recurring insights. Use `kb-claude new`, `kb-claude search`, and the other subcommands to maintain our institutional memory about this project's development.
 

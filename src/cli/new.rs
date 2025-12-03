@@ -54,10 +54,7 @@ pub fn run(args: NewArgs) -> Result<()> {
     fs::write(&output_path, content)
         .with_context(|| format!("Unable to write {}", output_path.display()))?;
 
-    println!(
-        "Created {}",
-        display_relative(&workspace, &output_path)
-    );
+    println!("Created {}", display_relative(&workspace, &output_path));
 
     Ok(())
 }

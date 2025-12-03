@@ -2,10 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use walkdir::WalkDir;
 
 use super::LinkArgs;
-use crate::fs::{display_relative, resolve_claude_root_from_cwd, MD_EXTENSION, NO_CLAUDE_DIR_ERROR};
+use crate::fs::{display_relative, resolve_claude_root_from_cwd, walk_kb_documents};
 use crate::model::{Document, OntologicalRelation};
 
 pub fn run(args: LinkArgs) -> Result<()> {
@@ -16,7 +15,10 @@ pub fn run(args: LinkArgs) -> Result<()> {
     let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
 
     if !claude_root.exists() {
-        bail!(NO_CLAUDE_DIR_ERROR, cwd.display());
+        bail!(
+            "No .claude directory found under {}. Run `kb-claude init` first.",
+            cwd.display()
+        );
     }
 
     let mut source = load_document(&claude_root, &args.source)?;
@@ -62,21 +64,10 @@ struct DocumentRecord {
 
 fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentRecord> {
     let mut matches = Vec::new();
-    for entry in WalkDir::new(claude_root) {
-        let entry = entry?;
-        let path = entry.path();
 
-        if !entry.file_type().is_file() {
-            continue;
-        }
-
-        if crate::fs::is_ignored_path(path, claude_root) {
-            continue;
-        }
-
-        if path.extension().is_none_or(|ext| ext != MD_EXTENSION) {
-            continue;
-        }
+    for entry_result in walk_kb_documents(claude_root) {
+        let entry = entry_result?;
+        let path = &entry.path;
 
         let stem = path
             .file_stem()
@@ -86,18 +77,13 @@ fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentRecord> {
             continue;
         }
 
-        let content = fs::read_to_string(path)
-            .with_context(|| format!("Unable to read {}", path.display()))?;
-        let document = Document::parse(&content)
-            .with_context(|| format!("Unable to parse {}", path.display()))?;
-
-        if document.front_matter.link != slug {
+        if entry.document.front_matter.link != slug {
             continue;
         }
 
         matches.push(DocumentRecord {
-            path: path.to_path_buf(),
-            document,
+            path: path.clone(),
+            document: entry.document,
         });
     }
 
