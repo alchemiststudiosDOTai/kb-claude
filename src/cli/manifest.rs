@@ -30,7 +30,10 @@ pub fn run(args: ManifestArgs) -> Result<()> {
     fs::write(&output_path, manifest_content)
         .with_context(|| format!("Unable to write {}", output_path.display()))?;
 
-    println!("Wrote manifest to {}", display_relative(&base_dir, &output_path));
+    println!(
+        "Wrote manifest to {}",
+        display_relative(&base_dir, &output_path)
+    );
     Ok(())
 }
 
