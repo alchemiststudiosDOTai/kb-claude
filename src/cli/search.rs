@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Result};
 
 use super::SearchArgs;
-use crate::fs::{resolve_claude_root_from_cwd, walk_kb_documents};
+use crate::fs::{display_relative, resolve_claude_root_from_cwd, walk_kb_documents};
 
 pub fn run(args: SearchArgs) -> Result<()> {
     let (cwd, claude_root) = resolve_claude_root_from_cwd()?;
@@ -90,16 +90,13 @@ fn filter_match(
         score += searchable.matches(term).count();
     }
 
-    let relative = entry
-        .path
-        .strip_prefix(claude_root.parent().unwrap_or(claude_root))
-        .unwrap_or(&entry.path);
+    let workspace = claude_root.parent().unwrap_or(claude_root);
 
     Some(SearchMatch {
         title: front.title.clone(),
         doc_type: front.doc_type.clone(),
         tags: front.tags.clone(),
-        path: PathBuf::from(format!("./{}", relative.display())),
+        path: PathBuf::from(display_relative(workspace, &entry.path)),
         score,
     })
 }
