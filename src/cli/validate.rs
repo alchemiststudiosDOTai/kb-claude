@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Result};
 
 use super::ValidateArgs;
-use crate::fs::{resolve_claude_root, walk_kb_documents, ClaudePaths};
+use crate::fs::{display_relative, resolve_claude_root, walk_kb_documents, ClaudePaths};
 use crate::model::Document;
 
 pub fn run(args: ValidateArgs) -> Result<()> {
@@ -209,11 +209,7 @@ fn print_findings(findings: &[Finding], workspace: &Path) {
             Severity::Error => "error",
             Severity::Warning => "warning",
         };
-        let display = finding
-            .path
-            .strip_prefix(workspace)
-            .map(|path| format!("./{}", path.display()))
-            .unwrap_or_else(|_| finding.path.display().to_string());
+        let display = display_relative(workspace, &finding.path);
         println!("{label}: {display} — {}", finding.message);
     }
 }
