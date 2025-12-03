@@ -20,7 +20,7 @@ pub fn run(args: NewArgs) -> Result<()> {
         layout.ensure_layout()?;
         println!(
             "No existing knowledge base detected; created layout at {}",
-            claude_root.display()
+            display_relative(&cwd, &claude_root)
         );
     }
 
