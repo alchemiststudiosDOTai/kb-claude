@@ -1,4 +1,4 @@
-# kb-claude: Knowledge Base CLI for Engineering Projects
+# kb-claude: Knowledge Base CLI
 
 A lightweight CLI that maintains a typed knowledge base in `.claude/` folders. Every entry is a Markdown file with YAML front matter, organized by semantic type.
 
