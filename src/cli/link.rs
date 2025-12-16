@@ -1,10 +1,10 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 
 use super::LinkArgs;
-use crate::fs::{display_relative, resolve_claude_root_from_cwd, walk_kb_documents};
+use crate::fs::{display_relative, resolve_claude_root_from_cwd, walk_kb_documents, DocumentEntry};
 use crate::model::{Document, OntologicalRelation};
 
 pub fn run(args: LinkArgs) -> Result<()> {
@@ -57,12 +57,7 @@ pub fn run(args: LinkArgs) -> Result<()> {
     Ok(())
 }
 
-struct DocumentRecord {
-    path: PathBuf,
-    document: Document,
-}
-
-fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentRecord> {
+fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentEntry> {
     let mut matches = Vec::new();
 
     for entry_result in walk_kb_documents(claude_root) {
@@ -81,10 +76,7 @@ fn load_document(claude_root: &Path, slug: &str) -> Result<DocumentRecord> {
             continue;
         }
 
-        matches.push(DocumentRecord {
-            path: path.clone(),
-            document: entry.document,
-        });
+        matches.push(entry);
     }
 
     match matches.len() {
@@ -100,12 +92,10 @@ fn insert_relation(document: &mut Document, target_link: &str, force: bool) -> b
         .iter()
         .any(|relation| relation.relates_to == target_link);
 
-    // Guard: early return if relation exists and not forcing
     if exists && !force {
         return false;
     }
 
-    // Only add if doesn't exist or we're forcing
     if !exists || force {
         relations.push(OntologicalRelation {
             relates_to: target_link.to_string(),
@@ -116,7 +106,7 @@ fn insert_relation(document: &mut Document, target_link: &str, force: bool) -> b
     true
 }
 
-fn write_document(record: &DocumentRecord) -> Result<()> {
+fn write_document(record: &DocumentEntry) -> Result<()> {
     let content = record.document.to_markdown()?;
     fs::write(&record.path, content)
         .with_context(|| format!("Unable to write {}", record.path.display()))?;
