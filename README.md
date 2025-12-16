@@ -1,26 +1,18 @@
-# kb-claude: Ontological Knowledge Base CLI
+# kb-claude: Knowledge Base CLI for Engineering Projects
 
-## 1. Philosophy
+A lightweight CLI that maintains a typed knowledge base in `.claude/` folders. Every entry is a Markdown file with YAML front matter, organized by semantic type.
 
-`kb-claude` is not a notes app or a static site generator. It is a _living knowledge base manager_ for engineering projects—equal parts changelog, research archive, and design journal.
+## Quick Start
 
-Every entry is an **ontological Markdown file**: a typed piece of knowledge that belongs inside a shared mental model. Instead of scattered notes, the tool enforces a single rule:
+```bash
+cargo install claude-kb-cli
+kb-claude init
+kb-claude new "auth module broke after upgrade" -t debug_history
+kb-claude search "auth"
+kb-claude manifest
+```
 
-> If it matters, it belongs in `.claude/`, and it must declare a `type`.
-
-Each `.claude/` subfolder represents a semantic category (debug history, patterns, QA, code index, and so on). By naming these folders explicitly, we get predictable, searchable locations for every insight a team creates.
-
-## 2. What It Does
-
-`kb-claude` automates three responsibilities:
-
-1. **Creation** – Generates Markdown files with validated YAML front matter describing what happened, why, and how it connects to other knowledge.
-2. **Organization** – Stores every file under the correct `.claude/` folder based on its `type`.
-3. **Maintenance** – Provides CLI commands that validate, search, and summarize the knowledge base.
-
-The result is a transparent, text-native system that thrives in version control.
-
-## 3. Folder Layout
+## Folder Layout
 
 ```
 .claude/
@@ -30,17 +22,15 @@ The result is a transparent, text-native system that thrives in version control.
   code_index/      file or module references
   patterns/        reusable fixes or design motifs
   plans/           project and release plans
-  other/           scratch notes ignored by the CLI
-  cheatsheets/     quick references or how-tos
-  memory_anchors/  core concepts tracked by UUID
-  manifest.md      automatically generated summary
+  other/           scratch notes (ignored by CLI)
+  cheatsheets/     quick references
+  memory_anchors/  core concepts with UUIDs
+  manifest.md      auto-generated summary
 ```
 
-Each subdirectory is a distinct knowledge type. When creating entries, `type:` must match one of these folder names. Use `.claude/other/` for ad-hoc notes—the CLI skips anything under that folder.
+## Document Structure
 
-## 4. Document Structure
-
-Every `.md` file starts with YAML front matter followed by narrative Markdown content.
+Every file has YAML front matter plus Markdown content:
 
 ```yaml
 ---
@@ -49,68 +39,26 @@ link: auth-module-broken
 type: debug_history
 ontological_relations:
   - relates_to: [[drizzle-docs]]
-  - relates_to: [[dependency-docs]]
-tags:
-  - dependencies
-  - auth
-created_at: 2025-10-23T14:00:00Z
-updated_at: 2025-10-23T14:00:00Z
+tags: [dependencies, auth]
 uuid: 123e4567-e89b-12d3-a456-426614174000
+created_at: 2025-10-23T14:00:00Z
 ---
 ```
 
-- **title** – human-readable summary.
-- **link** – slug that doubles as filename.
-- **type** – must align with a `.claude/` subfolder.
-- **ontological_relations** – wiki-style cross-links (`[[slug]]`).
-- **tags** – keywords for search.
-- **uuid** – auto-generated for traceability.
+**Required fields**: `title`, `link`, `type`, `created_at`, `uuid`  
+**Optional fields**: `ontological_relations`, `tags`, `updated_at`
 
-The body is free-form Markdown: logs, analysis, diagrams, etc.
+## Commands
 
-## 5. Core Commands
+- `kb-claude init` - create `.claude/` layout
+- `kb-claude new "Title"` - create new entry (interactive)
+- `kb-claude search keyword` - search across all content
+- `kb-claude validate [--strict]` - check metadata consistency  
+- `kb-claude manifest` - rebuild summary table
+- `kb-claude link source target` - create cross-references
 
-- `kb-claude init` – create the `.claude/` layout in a repo.
-- `kb-claude new "Title"` – guided prompt for new entries; handles tags, relations, timestamps, UUIDs, and file placement.
-- `kb-claude search keyword` – case-insensitive search across titles, tags, relations, and body text.
-- `kb-claude validate [--strict]` – parse every entry, confirm required metadata, and flag inconsistencies (e.g., slug mismatch).
-- `kb-claude manifest` – rebuild `.claude/manifest.md`, a table summarizing every document.
-- `kb-claude link source target` – insert reciprocal relations between two slugs.
+## Workflow
 
-## 6. Daily Workflow Tips
-
-- Treat `.claude/` as the project’s institutional memory. Capture debugging sessions, architecture decisions, and recurring Q&A.
-- Before adding content, run `kb-claude search` to avoid duplication.
-- Run `kb-claude validate --strict` before committing to keep the KB clean.
-- The manifest acts like a changelog of insights—commit it alongside entries.
-
-## 7. Design Principles
-
-1. **Text over tools** – Markdown and YAML are the only storage formats.
-2. **Structure without rigidity** – required metadata, free body text.
-3. **Traceable knowledge** – everything has UUIDs and timestamps.
-4. **Search-first** – think of `.claude/` as a local wiki you can grep.
-5. **Small knowledge commits** – frequent, incremental captures beat perfect essays.
-6. **Longevity** – the folder should remain useful in plain text for years.
-
-## 8. Extending the Tool
-
-Future directions: semantic search (Tantivy/SQLite), ontology graphs, automated summarizers, git-aware manifest diffs, or HTML/Notion exporters. The current MVP focuses on correctness, structure, and speed.
-
-## 9. Getting Started
-
-Install from [crates.io](https://crates.io/crates/claude-kb-cli):
-
-```bash
-cargo install claude-kb-cli
-```
-
-Then run:
-
-```bash
-kb-claude init
-kb-claude new "First Entry" -t metadata
-kb-claude manifest
-```
-
-That’s enough to see the typed knowledge base take shape. Everything else—searching, validating, linking—builds on that foundation.
+- Search before creating to avoid duplicates  
+- Run `kb-claude validate --strict` before commits
+- Commit manifest.md alongside entries for changelog
