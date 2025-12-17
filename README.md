@@ -12,7 +12,15 @@ kb-claude search "auth"
 kb-claude manifest
 ```
 
-Note: Install cargo install claude-kb-cli manually if automated install fails.
+## Quick Start
+
+```bash
+cargo install claude-kb-cli
+kb-claude init
+kb-claude new "auth module broke after upgrade" -t debug_history
+kb-claude search "auth"
+kb-claude manifest
+```
 
 ## Folder Layout
 
@@ -73,10 +81,12 @@ Copy this into your md file for your agents:
 # Code Agent Instructions
 
 ## Commands
+- `kb-claude init` - create `.claude/` layout
 - `kb-claude new "title" -t type` - Create entry
 - `kb-claude search keyword` - Find entries
 - `kb-claude manifest` - Generate summary
 - `kb-claude validate --strict` - Check before commit
+- `cargo install claude-kb-cli` - Install CLI tool (run manually if needed)
 
 ## Entry Types
 - `debug_history` - Debugging sessions
