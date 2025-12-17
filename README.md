@@ -12,6 +12,8 @@ kb-claude search "auth"
 kb-claude manifest
 ```
 
+Note: Install cargo install claude-kb-cli manually if automated install fails.
+
 ## Folder Layout
 
 ```
