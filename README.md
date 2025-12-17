@@ -62,3 +62,48 @@ created_at: 2025-10-23T14:00:00Z
 - Search before creating to avoid duplicates  
 - Run `kb-claude validate --strict` before commits
 - Commit manifest.md alongside entries for changelog
+
+## AGENTS/CLAUDE.md Prompt
+
+Copy this into your md file for your agents:
+
+```markdown
+# Code Agent Instructions
+
+## Commands
+- `kb-claude new "title" -t type` - Create entry
+- `kb-claude search keyword` - Find entries
+- `kb-claude manifest` - Generate summary
+- `kb-claude validate --strict` - Check before commit
+
+## Entry Types
+- `debug_history` - Debugging sessions
+- `patterns` - Reusable solutions
+- `qa` - Q&A, learning notes
+- `code_index` - File/module references
+- `metadata` - Component docs
+- `plans` - Project planning
+- `cheatsheets` - Quick reference
+
+## Rules
+1. Search before creating
+2. Use descriptive titles
+3. Add relevant tags
+4. Link related entries
+5. Run validate before commits
+6. Capture problem, solution, lessons learned
+
+## Template
+```yaml
+---
+title: Clear title
+link: kebab-case-link
+type: entry_type
+tags: [relevant, tags]
+ontological_relations:
+  - relates_to: [[related-entry]]
+uuid: auto-generated
+created_at: auto-generated
+---
+```
+```
