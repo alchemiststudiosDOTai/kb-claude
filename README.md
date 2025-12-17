@@ -12,16 +12,6 @@ kb-claude search "auth"
 kb-claude manifest
 ```
 
-## Quick Start
-
-```bash
-cargo install claude-kb-cli
-kb-claude init
-kb-claude new "auth module broke after upgrade" -t debug_history
-kb-claude search "auth"
-kb-claude manifest
-```
-
 ## Folder Layout
 
 ```
@@ -117,5 +107,4 @@ ontological_relations:
 uuid: auto-generated
 created_at: auto-generated
 ---
-```
 ```
