@@ -19,8 +19,6 @@ pub const CLAUDE_DIRECTORIES: &[&str] = &[
 
 // Common error messages
 pub const CURRENT_DIR_ERROR: &str = "Unable to determine current directory";
-pub const NO_CLAUDE_DIR_ERROR: &str =
-    "No .claude directory found under {}. Run `kb-claude init` first.";
 
 // File extensions
 pub const MD_EXTENSION: &str = "md";
